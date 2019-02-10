@@ -1,5 +1,7 @@
 # MessagePackGridView
 
+this Editor Plugin depends on (MessagePack for C#)[https://github.com/neuecc/MessagePack-CSharp]
+
 ## Usage
 
 ```csharp
