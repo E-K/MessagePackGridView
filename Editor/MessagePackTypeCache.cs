@@ -9,58 +9,58 @@ namespace MessagePackGridView
 {
     public static class MessagePackTypeCache
     {
-        static void MessagePackTypeCacheXX()
-        {
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(asm => !asm.FullName.StartsWith("mscorlib,"))
-                .Where(asm => !asm.FullName.StartsWith("System,"))
-                .Where(asm => !asm.FullName.StartsWith("System."))
-                .Where(asm => !asm.FullName.StartsWith("nunit.framework"))
-                .Where(asm => !asm.FullName.StartsWith("ICSharpCode.NRefactory,"))
-                .Where(asm => !asm.FullName.StartsWith("ExCSS.Unity,"))
-                .Where(asm => !asm.FullName.StartsWith("Unity"))
-                .Where(asm => !asm.FullName.StartsWith("SyntaxTree"))
-                .Where(asm => !asm.FullName.StartsWith("Mono.Security,"))
-#if (NET_4_6 || NET_STANDARD_2_0)
-                .Where(asm => !asm.IsDynamic)
-#endif
-                .SelectMany(asm => asm.GetExportedTypes())
-                .ToArray();
+//        static void MessagePackTypeCacheXX()
+//        {
+//            var types = AppDomain.CurrentDomain.GetAssemblies()
+//                .Where(asm => !asm.FullName.StartsWith("mscorlib,"))
+//                .Where(asm => !asm.FullName.StartsWith("System,"))
+//                .Where(asm => !asm.FullName.StartsWith("System."))
+//                .Where(asm => !asm.FullName.StartsWith("nunit.framework"))
+//                .Where(asm => !asm.FullName.StartsWith("ICSharpCode.NRefactory,"))
+//                .Where(asm => !asm.FullName.StartsWith("ExCSS.Unity,"))
+//                .Where(asm => !asm.FullName.StartsWith("Unity"))
+//                .Where(asm => !asm.FullName.StartsWith("SyntaxTree"))
+//                .Where(asm => !asm.FullName.StartsWith("Mono.Security,"))
+//#if (NET_4_6 || NET_STANDARD_2_0)
+//                .Where(asm => !asm.IsDynamic)
+//#endif
+//                .SelectMany(asm => asm.GetExportedTypes())
+//                .ToArray();
 
-            foreach (var t in types)
-            {
-                //cache union
-                var unions = t.GetCustomAttributes(typeof(UnionAttribute), true)
-                    .Cast<UnionAttribute>()
-                    .OrderBy(attr => attr.Key)
-                    .ToArray();
+//            foreach (var t in types)
+//            {
+//                //cache union
+//                var unions = t.GetCustomAttributes(typeof(UnionAttribute), true)
+//                    .Cast<UnionAttribute>()
+//                    .OrderBy(attr => attr.Key)
+//                    .ToArray();
 
-                if (unions != null && unions.Length > 0)
-                {
-                    UnionCache.Add(t, unions);
-                }
+//                if (unions != null && unions.Length > 0)
+//                {
+//                    UnionCache.Add(t, unions);
+//                }
 
-                //next cache [Key] property
-                //type should be concrete
-                if (t.IsInterface || t.IsAbstract)
-                    continue;
+//                //next cache [Key] property
+//                //type should be concrete
+//                if (t.IsInterface || t.IsAbstract)
+//                    continue;
 
-                var mpo = t.GetCustomAttributes(typeof(MessagePackObjectAttribute), true);
-                if (mpo == null || mpo.Length == 0)
-                    continue;
+//                var mpo = t.GetCustomAttributes(typeof(MessagePackObjectAttribute), true);
+//                if (mpo == null || mpo.Length == 0)
+//                    continue;
 
-                var props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(prop => prop.CanRead && prop.CanWrite) //requires get; set;
-                    .Where(prop =>
-                    {
-                        var attr = prop.GetCustomAttributes<KeyAttribute>(true);
-                        return attr != null;
-                    })
-                    .ToArray();
+//                var props = t.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+//                    .Where(prop => prop.CanRead && prop.CanWrite) //requires get; set;
+//                    .Where(prop =>
+//                    {
+//                        var attr = prop.GetCustomAttributes<KeyAttribute>(true);
+//                        return attr != null;
+//                    })
+//                    .ToArray();
 
-                MemberCache.Add(t, props);
-            }
-        }
+//                MemberCache.Add(t, props);
+//            }
+//        }
 
         private static readonly object s_gate = new object(); //lock
         private static readonly Dictionary<Type, UnionAttribute[]> UnionCache = new Dictionary<Type, UnionAttribute[]>();
@@ -82,30 +82,36 @@ namespace MessagePackGridView
             return unions;
         }
 
-        public static MemberInfo[] GetMessagePackMembers(Type type, int unionKey = 0)
+        public static MemberInfo[] GetMessagePackMembers(Type type, int unionKey = 0, bool ignoretAttribute = false)
         {
             lock(s_gate)
             {
                 if(MemberCache.TryGetValue(type, out MemberInfo[] result))
                     return result;
 
-                var m = GetMembersInfo(type);
+                var m = GetMembersInfo(type, ignoretAttribute);
                 MemberCache.Add(type, m);
                 return m;
             }
         }
-
-        private static MemberInfo[] GetMembersInfo(Type type)
+        
+        private static MemberInfo[] GetMembersInfo(Type type, bool ignoreAttribute = false)
         {
-            var messagePackObjectAttribute = type.GetCustomAttribute<MessagePackObjectAttribute>(inherit: true);
-            if (messagePackObjectAttribute is null)
-                throw new ArgumentException($"type {type.FullName} shoud have MessagePackObject Attribute");
+            if(!ignoreAttribute)
+            {
+                var messagePackObjectAttribute = type.GetCustomAttribute<MessagePackObjectAttribute>(inherit: true);
+                if (messagePackObjectAttribute is null)
+                    throw new ArgumentException($"type {type.FullName} shoud have MessagePackObject Attribute");
+            }
             
             var props = type.GetMembers(BindingFlags.Public | BindingFlags.Instance)
                     .Where(m => m.MemberType == MemberTypes.Field || m.MemberType == MemberTypes.Property)
                     .Where(m => m.MemberType == MemberTypes.Field || (m as PropertyInfo).CanRead)
                     .Where(prop =>
                     {
+                        if (ignoreAttribute)
+                            return true;
+
                         var attr = prop.GetCustomAttributes<KeyAttribute>(true);
                         return attr != null;
                     })

@@ -10,6 +10,11 @@ namespace MessagePackGridView
 {
     public class MessagePackGridViewModel
     {
+        private static readonly Type[] IgnoreAttibuteTypeDefinitions =
+        {
+            typeof(KeyValuePair<,>),
+        };
+
         public readonly MultiColumnHeaderState.Column[] columns;
         private readonly List<IColumn> _columns = new List<IColumn>();
         public IReadOnlyList<IColumn> Columns => _columns;
@@ -42,7 +47,8 @@ namespace MessagePackGridView
             }
             else
             {
-                var members = MessagePackTypeCache.GetMessagePackMembers(elementType);
+                var ignore = elementType.IsGenericType && IgnoreAttibuteTypeDefinitions.Contains(elementType.GetGenericTypeDefinition());
+                var members = MessagePackTypeCache.GetMessagePackMembers(elementType, ignoretAttribute: ignore);
                 columns = new MultiColumnHeaderState.Column[members.Length];
                 for(int i = 0; i < members.Length; i++)
                 {
