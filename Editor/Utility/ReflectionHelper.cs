@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace MessagePackGridView
 {
-    public class EnumerableReflectionHelper
+    public class ReflectionHelper
     {
-        public static IEnumerable<object> GetValues(object obj)
+        public static IEnumerable<object> GetEnumerableValues(object obj)
         {
             var type = obj.GetType();
             var (isEnumerable, _) = type.IsEnumerable();
@@ -25,6 +25,16 @@ namespace MessagePackGridView
             {
                 yield return currentProp.GetValue(enumerator);
             }
+        }
+
+        public static object GetKeyValuePairKey(object obj)
+        {
+            return obj.GetType().GetProperty("Key").GetValue(obj);
+        }
+
+        public static object GetKeyValuePairValue(object obj)
+        {
+            return obj.GetType().GetProperty("Value").GetValue(obj);
         }
     }
 }

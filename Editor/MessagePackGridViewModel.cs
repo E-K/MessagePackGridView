@@ -48,7 +48,7 @@ namespace MessagePackGridView
             if(isEnumerable)
             {
                 elementType = interfaceType.GetGenericArguments()[0];
-                _data.AddRange(EnumerableReflectionHelper.GetValues(data).Select((x, i) => new TreeViewItem<object>(i + 1, 0, x.ToString(), x)));
+                _data.AddRange(ReflectionHelper.GetEnumerableValues(data).Select((x, i) => new TreeViewItem<object>(i + 1, 0, x.ToString(), x)));
             }
             else //not collection
             {
@@ -120,6 +120,40 @@ namespace MessagePackGridView
                 {
                     headerContent = new GUIContent("Value"),
                     canSort = true,
+                };
+            }
+        }
+
+        public class KayValuePairColumn : IColumn
+        {
+            private readonly MemberInfo _memberInfo = null;
+            private bool _isKey = false;
+            public bool IsPrimitive { get; }
+            private string Prefix { get; }
+
+            public KayValuePairColumn(MemberInfo member, bool isKey = false)
+            {
+                _memberInfo = member;
+                _isKey = isKey;
+                IsPrimitive = member.ValueType().IsPrimitiveOrString();
+                Prefix = isKey ? "K:" : "V:";
+            }
+
+            public object GetValue(object row)
+            {
+                object flatten = _isKey ? ReflectionHelper.GetKeyValuePairKey(row) : ReflectionHelper.GetKeyValuePairValue(row);
+                if (flatten == null)
+                    return null;
+
+                return flatten.GetType().IsPrimitiveOrString() ? flatten : _memberInfo.GetValue(flatten);
+            }
+
+            public MultiColumnHeaderState.Column CreateMultiColumnHeaderStateColumn()
+            {
+                return new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent(Prefix + _memberInfo.Name),
+                    canSort = IsPrimitive,
                 };
             }
         }
