@@ -50,6 +50,7 @@ namespace MessagePackGridView
                     columns[i] = new MultiColumnHeaderState.Column
                     {
                         headerContent = new UnityEngine.GUIContent(member.Name),
+                        canSort = false,
                     };
                     _columns.Add(new Column(member));
                 }

@@ -58,6 +58,9 @@ namespace MessagePackGridView
         private void CellGUI(Rect cellRect, TreeViewItem<object> item, MessagePackGridViewModel.IColumn column, ref RowGUIArgs args)
         {
             var obj = column.GetValue(item.Value);
+            if (obj is null)
+                return;
+
             var str = obj.ToString();
             if(!column.IsPrimitive)
             {
