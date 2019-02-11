@@ -96,7 +96,7 @@ namespace MessagePackGridView
                 return new MultiColumnHeaderState.Column
                 {
                     headerContent = new GUIContent(_memberInfo.Name),
-                    canSort = false
+                    canSort = IsPrimitive
                 };
             }
         }

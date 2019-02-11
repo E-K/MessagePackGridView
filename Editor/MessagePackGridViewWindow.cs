@@ -14,6 +14,11 @@ namespace MessagePackGridView
         {
             _data = data;
 
+            if(_data != null)
+            {
+                titleContent = new GUIContent(_data.GetType().Name);
+            }
+
             if(_gridView == null)
             {
                 var state = new TreeViewState();
