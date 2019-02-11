@@ -4,7 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using MessagePackGridView.ColumnGenerators;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
 namespace MessagePackGridView
 {
@@ -13,9 +15,26 @@ namespace MessagePackGridView
         private static readonly Type[] IgnoreAttibuteTypeDefinitions =
         {
             typeof(KeyValuePair<,>),
+            typeof(Tuple<>),
+            typeof(Tuple<,>),
+            typeof(Tuple<,,>),
+            typeof(Tuple<,,,>),
+            typeof(Tuple<,,,,>),
+            typeof(Tuple<,,,,,>),
+            typeof(Tuple<,,,,,,>),
+            typeof(Tuple<,,,,,,,>),
+#if CSHARP_7_OR_LATER
+            typeof(ValueTuple<>),
+            typeof(ValueTuple<,>),
+            typeof(ValueTuple<,,>),
+            typeof(ValueTuple<,,,>),
+            typeof(ValueTuple<,,,,>),
+            typeof(ValueTuple<,,,,,>),
+            typeof(ValueTuple<,,,,,,>),
+            typeof(ValueTuple<,,,,,,,>),
+#endif
         };
 
-        public readonly MultiColumnHeaderState.Column[] columns;
         private readonly List<IColumn> _columns = new List<IColumn>();
         public IReadOnlyList<IColumn> Columns => _columns;
         private readonly List<TreeViewItem<object>> _data = new List<TreeViewItem<object>>();
@@ -37,36 +56,19 @@ namespace MessagePackGridView
             }
 
             //Header
-            if(elementType.IsPrimitiveOrString())
-            {
-                columns = new MultiColumnHeaderState.Column[] { new MultiColumnHeaderState.Column
-                {
-                    headerContent = new UnityEngine.GUIContent("Value"),
-                }};
-                _columns.Add(PrimitiveColumn.Instance);
-            }
-            else
-            {
-                var ignore = elementType.IsGenericType && IgnoreAttibuteTypeDefinitions.Contains(elementType.GetGenericTypeDefinition());
-                var members = MessagePackTypeCache.GetMessagePackMembers(elementType, ignoretAttribute: ignore);
-                columns = new MultiColumnHeaderState.Column[members.Length];
-                for(int i = 0; i < members.Length; i++)
-                {
-                    var member = members[i];
-                    columns[i] = new MultiColumnHeaderState.Column
-                    {
-                        headerContent = new UnityEngine.GUIContent(member.Name),
-                        canSort = false,
-                    };
-                    _columns.Add(new Column(member));
-                }
-            }
+            _columns.AddRange(ColumnGenerator.GetColumnGenerator(elementType).GenerateColumns(elementType));
+        }
+
+        public MultiColumnHeaderState.Column[] CreateMultiColumnHeaderStateColumns()
+        {
+            return _columns.Select(x => x.CreateMultiColumnHeaderStateColumn()).ToArray();
         }
 
         public interface IColumn
         {
             bool IsPrimitive { get; }
             object GetValue(object row);
+            MultiColumnHeaderState.Column CreateMultiColumnHeaderStateColumn();
         }
 
         public class Column : IColumn
@@ -88,6 +90,15 @@ namespace MessagePackGridView
             {
                 return _memberInfo.GetValue(row);
             }
+
+            public MultiColumnHeaderState.Column CreateMultiColumnHeaderStateColumn()
+            {
+                return new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent(_memberInfo.Name),
+                    canSort = false
+                };
+            }
         }
 
         public class PrimitiveColumn : IColumn
@@ -101,6 +112,15 @@ namespace MessagePackGridView
             public object GetValue(object row)
             {
                 return row;
+            }
+
+            public MultiColumnHeaderState.Column CreateMultiColumnHeaderStateColumn()
+            {
+                return new MultiColumnHeaderState.Column
+                {
+                    headerContent = new GUIContent("Value"),
+                    canSort = true,
+                };
             }
         }
     }

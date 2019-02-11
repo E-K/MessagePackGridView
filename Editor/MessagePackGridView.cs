@@ -15,7 +15,7 @@ namespace MessagePackGridView
         public static MessagePackGridView Create(TreeViewState state, object data)
         {
             var model = new MessagePackGridViewModel(data);
-            var header = new MultiColumnHeader(new MultiColumnHeaderState(model.columns));
+            var header = new MultiColumnHeader(new MultiColumnHeaderState(model.CreateMultiColumnHeaderStateColumns()));
             return new MessagePackGridView(state, header, model);
         }
 
