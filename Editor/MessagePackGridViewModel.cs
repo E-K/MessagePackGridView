@@ -12,29 +12,6 @@ namespace MessagePackGridView
 {
     public class MessagePackGridViewModel
     {
-        private static readonly Type[] IgnoreAttibuteTypeDefinitions =
-        {
-            typeof(KeyValuePair<,>),
-            typeof(Tuple<>),
-            typeof(Tuple<,>),
-            typeof(Tuple<,,>),
-            typeof(Tuple<,,,>),
-            typeof(Tuple<,,,,>),
-            typeof(Tuple<,,,,,>),
-            typeof(Tuple<,,,,,,>),
-            typeof(Tuple<,,,,,,,>),
-#if CSHARP_7_OR_LATER
-            typeof(ValueTuple<>),
-            typeof(ValueTuple<,>),
-            typeof(ValueTuple<,,>),
-            typeof(ValueTuple<,,,>),
-            typeof(ValueTuple<,,,,>),
-            typeof(ValueTuple<,,,,,>),
-            typeof(ValueTuple<,,,,,,>),
-            typeof(ValueTuple<,,,,,,,>),
-#endif
-        };
-
         private readonly List<IColumn> _columns = new List<IColumn>();
         public IReadOnlyList<IColumn> Columns => _columns;
         private readonly List<TreeViewItem<object>> _data = new List<TreeViewItem<object>>();
