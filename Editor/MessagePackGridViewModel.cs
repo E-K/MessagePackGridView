@@ -60,7 +60,7 @@ namespace MessagePackGridView
                 _memberInfo = memberInfo;
                 Type = memberInfo.ValueType();
                 Name = memberInfo.Name;
-                IsPrimitive = Type.IsPrimitiveOrString();
+                IsPrimitive = Type.IsPrimitiveOrEnumString();
             }
 
             public object GetValue(object row)
@@ -112,7 +112,7 @@ namespace MessagePackGridView
             {
                 _memberInfo = member;
                 _isKey = isKey;
-                IsPrimitive = member.ValueType().IsPrimitiveOrString();
+                IsPrimitive = member.ValueType().IsPrimitiveOrEnumString();
                 Prefix = isKey ? "K:" : "V:";
             }
 
@@ -122,7 +122,7 @@ namespace MessagePackGridView
                 if (flatten == null)
                     return null;
 
-                return flatten.GetType().IsPrimitiveOrString() ? flatten : _memberInfo.GetValue(flatten);
+                return flatten.GetType().IsPrimitiveOrEnumString() ? flatten : _memberInfo.GetValue(flatten);
             }
 
             public MultiColumnHeaderState.Column CreateMultiColumnHeaderStateColumn()

@@ -188,9 +188,19 @@ namespace MessagePackGridView
             return field.GetValue(obj);
         }
 
-        public static bool IsPrimitiveOrString(this Type type)
+        public static bool IsPrimitiveOrEnumString(this Type type)
         {
-            return type.IsPrimitive || type == typeof(string);
+            bool isPrimitive(Type t) => t.IsPrimitive || t.IsEnum || t == typeof(string);
+            if (isPrimitive(type))
+                return true;
+
+            if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                var contentType = type.GetGenericArguments()[0];
+                return isPrimitive(contentType);
+            }
+
+            return false;
         }
 
         #endregion

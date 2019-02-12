@@ -36,7 +36,7 @@ namespace MessagePackGridView.ColumnGenerators
 
         public static ColumnGenerator GetColumnGenerator(Type elementType)
         {
-            if (elementType.IsPrimitiveOrString())
+            if (elementType.IsPrimitiveOrEnumString())
                 return PrimitiveColumnGenerator.Instance;
 
             //overrideがあるなら
@@ -100,10 +100,10 @@ namespace MessagePackGridView.ColumnGenerators
             bool valueIgonoreType = ColumnGenerator.IgnoreAttribute(value.PropertyType);
 
             return Enumerable.Concat(
-                key.PropertyType.IsPrimitiveOrString() ? new[] { new MessagePackGridViewModel.KayValuePairColumn(key, isKey: true) }
+                key.PropertyType.IsPrimitiveOrEnumString() ? new[] { new MessagePackGridViewModel.KayValuePairColumn(key, isKey: true) }
                 : MessagePackTypeCache.GetMessagePackMembers(key.PropertyType, ignoretAttribute: keyIgonoreType)
                     .Select(m => new MessagePackGridViewModel.KayValuePairColumn(key, isKey: true)),
-                value.PropertyType.IsPrimitiveOrString() ? new[] { new MessagePackGridViewModel.KayValuePairColumn(value, isKey: false) }
+                value.PropertyType.IsPrimitiveOrEnumString() ? new[] { new MessagePackGridViewModel.KayValuePairColumn(value, isKey: false) }
                 : MessagePackTypeCache.GetMessagePackMembers(value.PropertyType, ignoretAttribute: valueIgonoreType)
                     .Select(m => new MessagePackGridViewModel.KayValuePairColumn(m, isKey: false))
             );

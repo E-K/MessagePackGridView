@@ -21,6 +21,13 @@ namespace MessagePackGridView
             var moveNext = enumType.GetMethod("MoveNext");
             var currentProp = enumType.GetProperty("Current");
 
+            if(moveNext == null || currentProp == null)
+            {
+                var ie = enumType.GetInterface("System.Collections.IEnumerator");
+                moveNext = ie.GetMethod("MoveNext");
+                currentProp = ie.GetProperty("Current");
+            }
+
             while((bool)moveNext.Invoke(enumerator, Array.Empty<object>()))
             {
                 yield return currentProp.GetValue(enumerator);
